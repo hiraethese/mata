@@ -15,6 +15,14 @@ extern const std::string TYPE_NFA;
 using State = unsigned long;
 using StateSet = mata::utils::OrdVector<State>;
 
+// TODO: Come up with a better name for conditional state.
+struct CondState {
+    State state; ///< Automaton state.
+    void* condition; ///< Pointer to the condition table when transitioning to a state.
+};
+
+using CondStateSet = mata::utils::OrdVector<CondState>;
+
 struct Run {
     Word word{}; ///< A finite-length word.
     std::vector<State> path{}; ///< A finite-length path through automaton.
