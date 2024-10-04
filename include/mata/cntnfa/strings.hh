@@ -5,8 +5,8 @@
 #define MATA_NFA_STRING_SOLVING_HH_
 
 #include "mata/alphabet.hh"
-#include "mata/nfa/delta.hh"
-#include "mata/nfa/types.hh"
+#include "delta.hh"
+#include "types.hh"
 #include "nfa.hh"
 
 /**

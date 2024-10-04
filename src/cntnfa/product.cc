@@ -2,8 +2,8 @@
  */
 
 // MATA headers
-#include "mata/nfa/nfa.hh"
-#include "mata/nfa/algorithms.hh"
+#include "mata/cntnfa/nfa.hh"
+#include "mata/cntnfa/algorithms.hh"
 #include <cassert>
 #include <functional>
 

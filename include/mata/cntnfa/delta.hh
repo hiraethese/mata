@@ -6,7 +6,7 @@
 #include "mata/utils/sparse-set.hh"
 #include "mata/utils/synchronized-iterator.hh"
 #include "mata/alphabet.hh"
-#include "mata/nfa/types.hh"
+#include "types.hh"
 
 #include <iterator>
 
