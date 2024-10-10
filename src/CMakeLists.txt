@@ -22,14 +22,7 @@ add_library(libmata STATIC
 	nfa/operations.cc
 	nfa/builder.cc
 	cntnfa/nfa.cc
-	cntnfa/inclusion.cc
-	cntnfa/universal.cc
-	cntnfa/complement.cc
-	cntnfa/product.cc
-	cntnfa/concatenation.cc
 	cntnfa/delta.cc
-	cntnfa/operations.cc
-	cntnfa/builder.cc
 )
 
 # libmata needs at least c++20
