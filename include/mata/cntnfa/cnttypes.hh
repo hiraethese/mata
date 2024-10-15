@@ -1,23 +1,27 @@
 // TODO: Insert file header.
 
-#ifndef MATA_TYPES_HH
-#define MATA_TYPES_HH
+#ifndef MATA_CNTTYPES_HH
+#define MATA_CNTTYPES_HH
 
 #include "mata/alphabet.hh"
 #include "mata/parser/parser.hh"
 
 #include <limits>
 
-namespace mata::nfa {
+namespace mata::cntnfa {
 
 extern const std::string TYPE_NFA;
 
 using State = unsigned long;
 using StateSet = mata::utils::OrdVector<State>;
 
+/// State with counter (State state and void* counter).
 struct CounterState {
     State state; ///< Automaton state.
     void* counter; ///< Pointer to the counter table when transitioning to a state.
+    bool operator==(const CounterState& other) const {
+        return state == other.state && counter == other.counter;
+    }
 };
 
 using CounterStateSet = mata::utils::OrdVector<CounterState>;
@@ -55,6 +59,6 @@ struct Nfa; ///< A non-deterministic finite automaton.
 /// An epsilon symbol which is now defined as the maximal value of data type used for symbols.
 constexpr Symbol EPSILON = Limits::max_symbol;
 
-} // namespace mata::nfa.
+} // namespace mata::cntnfa.
 
-#endif //MATA_TYPES_HH
+#endif //MATA_CNTTYPES_HH

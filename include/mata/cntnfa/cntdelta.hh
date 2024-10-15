@@ -1,107 +1,100 @@
 // TODO: Insert file header.
 
-#ifndef MATA_DELTA_HH
-#define MATA_DELTA_HH
+#ifndef MATA_CNTDELTA_HH
+#define MATA_CNTDELTA_HH
 
 #include "mata/utils/sparse-set.hh"
 #include "mata/utils/synchronized-iterator.hh"
 #include "mata/alphabet.hh"
-#include "types.hh"
+#include "cnttypes.hh"
 
 #include <iterator>
 
-namespace mata::nfa {
+namespace mata::cntnfa {
 
-/// A single transition in Delta represented as a triple(source, symbol, target).
-struct Transition {
+// Updated Transition structure for counters. TODO: comment. Constructor with CounterState is okay?
+struct CounterTransition {
     State source; ///< Source state.
     Symbol symbol; ///< Transition symbol.
-    State target; ///< Target state.
+    CounterState target; ///< Target state with counter.
 
-    Transition() : source(), symbol(), target() { }
-    Transition(const Transition&) = default;
-    Transition(Transition&&) = default;
-    Transition &operator=(const Transition&) = default;
-    Transition &operator=(Transition&&) = default;
-    Transition(const State source, const Symbol symbol, const State target)
+    CounterTransition() : source(), symbol(), target() { }
+    CounterTransition(const CounterTransition&) = default;
+    CounterTransition(CounterTransition&&) = default;
+    CounterTransition &operator=(const CounterTransition&) = default;
+    CounterTransition &operator=(CounterTransition&&) = default;
+    CounterTransition(const State source, const Symbol symbol, const CounterState &target)
             : source(source), symbol(symbol), target(target) {}
 
-    auto operator<=>(const Transition&) const = default;
+    auto operator<=>(const CounterTransition&) const = default;
 };
 
-/**
- * Move from a @c StatePost for a single source state, represented as a pair of @c symbol and target state @c target.
- */
-class Move {
+// Updated Move class for counters. TODO: comment.
+class CounterMove {
 public:
     Symbol symbol;
-    State target;
+    CounterState target; 
 
-    bool operator==(const Move&) const = default;
-}; // class Move.
+    bool operator==(const CounterMove&) const = default;
+}; // class CounterMove.
 
-/**
- * Structure represents a post of a single @c symbol: a set of target states in transitions.
- *
- * A set of @c SymbolPost, called @c StatePost, is describing the automata transitions from a single source state.
- */
-class SymbolPost {
+// Updated SymbolPost class for counters. TODO: comment.
+class CounterSymbolPost {
 public:
     Symbol symbol{};
-    StateSet targets{};
+    CounterStateSet targets{};
 
-    SymbolPost() = default;
-    explicit SymbolPost(Symbol symbol) : symbol{ symbol }, targets{} {}
-    SymbolPost(Symbol symbol, State state_to) : symbol{ symbol }, targets{ state_to } {}
-    SymbolPost(Symbol symbol, StateSet states_to) : symbol{ symbol }, targets{ std::move(states_to) } {}
+    CounterSymbolPost() = default;
+    explicit CounterSymbolPost(Symbol symbol)
+        : symbol{ symbol }, targets{} {}
+    CounterSymbolPost(Symbol symbol, State state_to, void *counter = nullptr)
+        : symbol{ symbol }, targets{ CounterState{ state_to, counter } } {}
+    CounterSymbolPost(Symbol symbol, CounterStateSet counter_states_to)
+        : symbol{ symbol }, targets{ std::move(counter_states_to) } {}
 
-    SymbolPost(SymbolPost&& rhs) noexcept : symbol{ rhs.symbol }, targets{ std::move(rhs.targets) } {}
-    SymbolPost(const SymbolPost& rhs) = default;
-    SymbolPost& operator=(SymbolPost&& rhs) noexcept;
-    SymbolPost& operator=(const SymbolPost& rhs) = default;
+    CounterSymbolPost(CounterSymbolPost&& rhs) noexcept
+        : symbol{ rhs.symbol }, targets{ std::move(rhs.targets) } {}
+    CounterSymbolPost(const CounterSymbolPost& rhs) = default;
+    CounterSymbolPost& operator=(CounterSymbolPost&& rhs) noexcept; // Implementation in cc file.
+    CounterSymbolPost& operator=(const CounterSymbolPost& rhs) = default;
 
-    std::weak_ordering operator<=>(const SymbolPost& other) const { return symbol <=> other.symbol; }
-    bool operator==(const SymbolPost& other) const { return symbol == other.symbol; }
+    std::weak_ordering operator<=>(const CounterSymbolPost& other) const { return symbol <=> other.symbol; }
+    bool operator==(const CounterSymbolPost& other) const { return symbol == other.symbol; }
 
-    StateSet::iterator begin() { return targets.begin(); }
-    StateSet::iterator end() { return targets.end(); }
+    CounterStateSet::iterator begin() { return targets.begin(); }
+    CounterStateSet::iterator end() { return targets.end(); }
 
-    StateSet::const_iterator cbegin() const { return targets.cbegin(); }
-    StateSet::const_iterator cend() const { return targets.cend(); }
+    CounterStateSet::const_iterator cbegin() const { return targets.cbegin(); }
+    CounterStateSet::const_iterator cend() const { return targets.cend(); }
 
-    size_t count(State s) const { return targets.count(s); }
+    size_t count(CounterState cs) const { return targets.count(cs); }
     bool empty() const { return targets.empty(); }
     size_t num_of_targets() const { return targets.size(); }
 
-    void insert(State s);
-    void insert(const StateSet& states);
+    void insert(CounterState cs); // Implementation in cc file.
+    void insert(const CounterStateSet& counter_states); // Implementation in cc file.
 
     // THIS BREAKS THE SORTEDNESS INVARIANT,
     // dangerous,
     // but useful for adding states in a random order to sort later (supposedly more efficient than inserting in a random order)
-    void inline push_back(const State s) { targets.push_back(s); }
+    void inline push_back(const CounterState cs) { targets.push_back(cs); }
 
     template <typename... Args>
-    StateSet& emplace_back(Args&&... args) {
+    CounterStateSet& emplace_back(Args&&... args) {
 	// Forwardinng the variadic template pack of arguments to the emplace_back() of the underlying container.
         return targets.emplace_back(std::forward<Args>(args)...);
     }
 
-    void erase(State s) { targets.erase(s); }
+    void erase(CounterState cs) { targets.erase(cs); }
 
-    std::vector<State>::const_iterator find(State s) const { return targets.find(s); }
-    std::vector<State>::iterator find(State s) { return targets.find(s); }
-}; // class mata::nfa::SymbolPost.
+    std::vector<CounterState>::const_iterator find(CounterState cs) const { return targets.find(cs); }
+    std::vector<CounterState>::iterator find(CounterState cs) { return targets.find(cs); }
+}; // class mata::nfa::CounterSymbolPost.
 
-/**
- * @brief A data structure representing possible transitions over different symbols from a source state.
- *
- * It is an ordered vector containing possible @c SymbolPost (i.e., pair of symbol and target states).
- * @c SymbolPosts in the vector are ordered by symbols in @c SymbolPosts.
- */
-class StatePost : private utils::OrdVector<SymbolPost> {
+// Updated StatePost class for counters. TODO: comment.
+class StatePost : private utils::OrdVector<CounterSymbolPost> {
 private:
-    using super = utils::OrdVector<SymbolPost>;
+    using super = utils::OrdVector<CounterSymbolPost>;
 public:
     using super::iterator, super::const_iterator;
     using super::begin, super::end, super::cbegin, super::cend;
@@ -133,8 +126,7 @@ public:
     const_iterator find(const Symbol symbol) const { return super::find({ symbol, {} }); }
 
     ///returns an iterator to the smallest epsilon, or end() if there is no epsilon
-    const_iterator first_epsilon_it(Symbol first_epsilon) const;
-
+    const_iterator first_epsilon_it(Symbol first_epsilon) const; // Implementation in cc file.
 
     /**
      * @brief Iterator over moves represented as @c Move instances.
@@ -154,8 +146,8 @@ public:
         Moves(const StatePost& state_post, StatePost::const_iterator symbol_post_it, StatePost::const_iterator symbol_post_end);
         Moves(Moves&&) = default;
         Moves(Moves&) = default;
-        Moves& operator=(Moves&& other) noexcept;
-        Moves& operator=(const Moves& other) noexcept;
+        Moves& operator=(Moves&& other) noexcept; // Implementation in cc file.
+        Moves& operator=(const Moves& other) noexcept; // Implementation in cc file.
 
         class const_iterator;
         const_iterator begin() const;
@@ -192,7 +184,7 @@ public:
     /**
      * Count the number of all moves in @c StatePost.
      */
-    size_t num_of_moves() const;
+    size_t num_of_moves() const; // Implementation in cc file.
 }; // class StatePost.
 
 /**
@@ -202,53 +194,51 @@ class StatePost::Moves::const_iterator {
 private:
     const StatePost* state_post_{ nullptr };
     StatePost::const_iterator symbol_post_it_{};
-    StateSet::const_iterator target_it_{};
+    CounterStateSet::const_iterator target_it_{};
     StatePost::const_iterator symbol_post_end_{};
     bool is_end_{ false };
     /// Internal allocated instance of @c Move which is set for the move currently iterated over and returned as
     ///  a reference with @c operator*().
-    Move move_{};
+    CounterMove move_{};
 
 public:
     using iterator_category = std::forward_iterator_tag;
-    using value_type = Move;
+    using value_type = CounterMove;
     using difference_type = size_t;
-    using pointer = Move*;
-    using reference = Move&;
+    using pointer = CounterMove*;
+    using reference = CounterMove&;
 
-     /// Construct end iterator.
+    /// Construct end iterator.
     const_iterator(): is_end_{ true } {}
     /// Const all moves iterator.
-    const_iterator(const StatePost& state_post);
+    const_iterator(const StatePost& state_post); // Implementation in cc file.
     /// Construct iterator from @p symbol_post_it (including) to @p symbol_post_it_end (excluding).
     const_iterator(const StatePost& state_post, StatePost::const_iterator symbol_post_it, 
-                   StatePost::const_iterator symbol_post_it_end);
+                   StatePost::const_iterator symbol_post_it_end); // Implementation in cc file.
     const_iterator(const const_iterator& other) noexcept = default;
     const_iterator(const_iterator&&) = default;
 
-    const Move& operator*() const { return move_; }
-    const Move* operator->() const { return &move_; }
+    const CounterMove& operator*() const { return move_; }
+    const CounterMove* operator->() const { return &move_; }
 
     // Prefix increment
-    const_iterator& operator++();
+    const_iterator& operator++(); // Implementation in cc file.
     // Postfix increment
-    const const_iterator operator++(int);
+    const const_iterator operator++(int); // Implementation in cc file.
 
     const_iterator& operator=(const const_iterator& other) noexcept = default;
     const_iterator& operator=(const_iterator&&) = default;
 
-    bool operator==(const const_iterator& other) const;
+    bool operator==(const const_iterator& other) const; // Implementation in cc file.
 }; // class const_iterator.
 
-/**
- * @brief Specialization of utils::SynchronizedExistentialIterator for iterating over SymbolPosts.
- */
-class SynchronizedExistentialSymbolPostIterator : public utils::SynchronizedExistentialIterator<utils::OrdVector<SymbolPost>::const_iterator> {
+// TODO: comment.
+class SynchronizedExistentialCounterSymbolPostIterator : public utils::SynchronizedExistentialIterator<utils::OrdVector<CounterSymbolPost>::const_iterator> {
 public:
     /**
      * @brief Get union of all targets.
      */
-    StateSet unify_targets() const;
+    CounterStateSet unify_targets() const;
 
     /**
      * @brief Synchronize with the given SymbolPost @p sync.
@@ -256,7 +246,7 @@ public:
      * Alignes the synchronized iterator to the same symbol as @p sync.
      * @return True iff the synchronized iterator points to the same symbol as @p sync.
      */
-    bool synchronize_with(const SymbolPost& sync);
+    bool synchronize_with(const CounterSymbolPost& sync);
 
     /**
      * @brief Synchronize with the given symbol @p sync_symbol.
@@ -265,36 +255,22 @@ public:
      * @return True iff the synchronized iterator points to the same symbol as @p sync.
      */
     bool synchronize_with(Symbol sync_symbol);
-}; // class SynchronizedExistentialSymbolPostIterator.
+}; // class SynchronizedExistentialCounterSymbolPostIterator.
 
-/**
- * @brief Delta is a data structure for representing transition relation.
- *
- * Transition is represented as a triple Trans(source state, symbol, target state). Move is the part (symbol, target
- *  state), specified for a single source state.
- * Its underlying data structure is vector of StatePost classes. Each index to the vector corresponds to one source
- *  state, that is, a number for a certain state is an index to the vector of state posts.
- * Transition relation (delta) in Mata stores a set of transitions in a four-level hierarchical structure:
- *  Delta, StatePost, SymbolPost, and a set of target states.
- * A vector of 'StatePost's indexed by a source states on top, where the StatePost for a state 'q' (whose number is
- *  'q' and it is the index to the vector of 'StatePost's) stores a set of 'Move's from the source state 'q'.
- * Namely, 'StatePost' has a vector of 'SymbolPost's, where each 'SymbolPost' stores a symbol 'a' and a vector of
- *  target states of 'a'-moves from state 'q'. 'SymbolPost's are ordered by the symbol, target states are ordered by
- *  the state number.
- */
-class Delta {
+// Updated Delta class for counters. TODO: comment.
+class CounterDelta {
 public:
     inline static const StatePost empty_state_post; // When posts[q] is not allocated, then delta[q] returns this.
 
-    Delta(): state_posts_{} {}
-    Delta(const Delta& other) = default;
-    Delta(Delta&& other) = default;
-    explicit Delta(size_t n): state_posts_{ n } {}
+    CounterDelta(): state_posts_{} {}
+    CounterDelta(const CounterDelta& other) = default;
+    CounterDelta(CounterDelta&& other) = default;
+    explicit CounterDelta(size_t n): state_posts_{ n } {}
 
-    Delta& operator=(const Delta& other) = default;
-    Delta& operator=(Delta&& other) = default;
+    CounterDelta& operator=(const CounterDelta& other) = default;
+    CounterDelta& operator=(CounterDelta&& other) = default;
 
-    bool operator==(const Delta& other) const;
+    bool operator==(const CounterDelta& other) const; // Implementation in cc file.
 
     void reserve(size_t n) {
         state_posts_.reserve(n);
@@ -344,9 +320,9 @@ public:
      * @param state_from[in] Source state of a state post to access.
      * @return State post of @p src_state.
      */
-    StatePost& mutable_state_post(State src_state);
+    StatePost& mutable_state_post(State src_state); // Implementation in cc file.
 
-    void defragment(const BoolVector& is_staying, const std::vector<State>& renaming);
+    void defragment(const BoolVector& is_staying, const std::vector<CounterState>& renaming); // Implementation in cc file.
 
     template <typename... Args>
     StatePost& emplace_back(Args&&... args) {
@@ -381,27 +357,27 @@ public:
     /**
      * @return Number of transitions in Delta.
      */
-    size_t num_of_transitions() const;
+    size_t num_of_transitions() const; // Implementation in cc file.
 
-    void add(State state_from, Symbol symbol, State state_to);
-    void add(const Transition& trans) { add(trans.source, trans.symbol, trans.target); }
-    void remove(State src, Symbol symb, State tgt);
-    void remove(const Transition& trans) { remove(trans.source, trans.symbol, trans.target); }
+    void add(State source, Symbol symbol, State target, void *counter); // Implementation in cc file.
+    void add(const CounterTransition& trans) { add(trans.source, trans.symbol, trans.target.state, trans.target.counter); }
+    void remove(State source, Symbol symbol, State target, void *counter); // Implementation in cc file.
+    void remove(const CounterTransition& trans) { remove(trans.source, trans.symbol, trans.target.state, trans.target.counter); }
 
     /**
      * Check whether @c Delta contains a passed transition.
      */
-    bool contains(State src, Symbol symb, State tgt) const;
+    bool contains(State source, Symbol symbol, State target, void *counter) const; // Implementation in cc file.
     /**
      * Check whether @c Delta contains a transition passed as a triple.
      */
-    bool contains(const Transition& transition) const;
+    bool contains(const CounterTransition& transition) const; // Implementation in cc file.
 
     /**
      * Check whether automaton contains no transitions.
      * @return True if there are no transitions in the automaton, false otherwise.
      */
-    bool empty() const;
+    bool empty() const; // Implementation in cc file.
 
     /**
      * @brief Append post vector to the delta.
@@ -424,16 +400,16 @@ public:
      * @param target_renumberer Monotonic lambda function mapping states to different states.
      * @return std::vector<Post> Copied posts.
      */
-    std::vector<StatePost> renumber_targets(const std::function<State(State)>& target_renumberer) const;
+    std::vector<StatePost> renumber_targets(const std::function<CounterState(CounterState)>& target_renumberer) const; // Implementation in cc file.
 
     /**
      * @brief Add transitions to multiple destinations
      *
-     * @param state_from From
+     * @param source From
      * @param symbol Symbol
-     * @param states Set of states to
+     * @param targets Set of states to
      */
-    void add(const State state_from, const Symbol symbol, const StateSet& states);
+    void add(const State source, const Symbol symbol, const CounterStateSet& targets); // Implementation in cc file.
 
     using const_iterator = std::vector<StatePost>::const_iterator;
     const_iterator cbegin() const { return state_posts_.cbegin(); }
@@ -455,7 +431,7 @@ public:
      *
      * Operation is slow, traverses over all symbol posts.
      */
-    std::vector<Transition> get_transitions_to(State state_to) const;
+    std::vector<CounterTransition> get_transitions_to(CounterState state_to) const; // Implementation in cc file.
 
     /**
      * Iterate over @p epsilon symbol posts under the given @p state.
@@ -463,7 +439,7 @@ public:
      * @param[in] epsilon User can define his favourite epsilon or used default.
      * @return An iterator to @c SymbolPost with epsilon symbol. End iterator when there are no epsilon transitions.
      */
-    StatePost::const_iterator epsilon_symbol_posts(State state, Symbol epsilon = EPSILON) const;
+    StatePost::const_iterator epsilon_symbol_posts(State state, Symbol epsilon = EPSILON) const; // Implementation in cc file.
 
     /**
      * Iterate over @p epsilon symbol posts under the given @p state_post.
@@ -471,7 +447,7 @@ public:
      * @param[in] epsilon User can define his favourite epsilon or used default.
      * @return An iterator to @c SymbolPost with epsilon symbol. End iterator when there are no epsilon transitions.
      */
-    static StatePost::const_iterator epsilon_symbol_posts(const StatePost& state_post, Symbol epsilon = EPSILON);
+    static StatePost::const_iterator epsilon_symbol_posts(const StatePost& state_post, Symbol epsilon = EPSILON); // Implementation in cc file.
 
     /**
      * @brief Expand @p target_alphabet by symbols from this delta.
@@ -500,17 +476,17 @@ public:
     Symbol get_max_symbol() const;
 private:
     std::vector<StatePost> state_posts_;
-}; // class Delta.
+}; // class CounterDelta.
 
 /**
  * @brief Iterator over transitions represented as @c Transition instances.
  *
  * It iterates over triples (State source, Symbol symbol, State target).
  */
-class Delta::Transitions {
+class CounterDelta::Transitions {
 public:
     Transitions() = default;
-    explicit Transitions(const Delta* delta): delta_{ delta } {}
+    explicit Transitions(const CounterDelta* delta): delta_{ delta } {}
     Transitions(Transitions&&) = default;
     Transitions(Transitions&) = default;
     Transitions& operator=(Transitions&&) = default;
@@ -520,49 +496,49 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 private:
-    const Delta* delta_;
+    const CounterDelta* delta_;
 }; // class Transitions.
 
 /**
  * Iterator over transitions.
  */
-class Delta::Transitions::const_iterator {
+class CounterDelta::Transitions::const_iterator {
 private:
-    const Delta* delta_ = nullptr;
+    const CounterDelta* delta_ = nullptr;
     size_t current_state_{};
     StatePost::const_iterator state_post_it_{};
-    StateSet::const_iterator symbol_post_it_{};
+    CounterStateSet::const_iterator symbol_post_it_{};
     bool is_end_{ false };
-    Transition transition_{};
+    CounterTransition transition_{};
 
 public:
     using iterator_category = std::forward_iterator_tag;
-    using value_type = Transition;
+    using value_type = CounterTransition;
     using difference_type = size_t;
-    using pointer = Transition*;
-    using reference = Transition&;
+    using pointer = CounterTransition*;
+    using reference = CounterTransition&;
 
     const_iterator(): is_end_{ true } {}
-    explicit const_iterator(const Delta& delta);
-    const_iterator(const Delta& delta, State current_state);
+    explicit const_iterator(const CounterDelta& delta); // Implementation in cc file.
+    const_iterator(const CounterDelta& delta, State current_state); // Implementation in cc file.
 
     const_iterator(const const_iterator& other) noexcept = default;
     const_iterator(const_iterator&&) = default;
 
-    const Transition& operator*() const { return transition_; }
-    const Transition* operator->() const { return &transition_; }
+    const CounterTransition& operator*() const { return transition_; }
+    const CounterTransition* operator->() const { return &transition_; }
 
     // Prefix increment
-    const_iterator& operator++();
+    const_iterator& operator++(); // Implementation in cc file.
     // Postfix increment
-    const const_iterator operator++(int);
+    const const_iterator operator++(int); // Implementation in cc file.
 
     const_iterator& operator=(const const_iterator& other) noexcept = default;
     const_iterator& operator=(const_iterator&&) = default;
 
-    bool operator==(const const_iterator& other) const;
-}; // class Delta::Transitions::const_iterator.
+    bool operator==(const const_iterator& other) const; // Implementation in cc file.
+}; // class CounterDelta::Transitions::const_iterator.
 
-} // namespace mata::nfa.
+} // namespace mata::cntnfa.
 
-#endif //MATA_DELTA_HH
+#endif //MATA_CNTDELTA_HH

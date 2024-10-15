@@ -1,8 +1,8 @@
-/* nfa.hh -- Nondeterministic finite automaton (over finite words).
+/* cntnfa.hh -- Nondeterministic finite automaton (over finite words) with counters.
  */
 
-#ifndef MATA_NFA_HH_
-#define MATA_NFA_HH_
+#ifndef MATA_CNTNFA_HH
+#define MATA_CNTNFA_HH
 
 // Static data structures, such as search stack, in algorithms. Might have some effect on some algorithms (like
 //  fragile_revert).
@@ -27,8 +27,8 @@
 #include "mata/parser/inter-aut.hh"
 #include "mata/utils/synchronized-iterator.hh"
 #include "mata/utils/sparse-set.hh"
-#include "types.hh"
-#include "delta.hh"
+#include "cnttypes.hh"
+#include "cntdelta.hh"
 
 /**
  * @brief Nondeterministic Finite Automata including structures, transitions and algorithms.
@@ -41,19 +41,19 @@
  * Other algorithms are included in mata::nfa::Plumbing (simplified API for, e.g., binding)
  * and mata::nfa::algorithms (concrete implementations of algorithms, such as for complement).
  */
-namespace mata::nfa {
+namespace mata::cntnfa {
 
 /**
- * A struct representing an NFA.
+ * A struct representing a NFA with counters.
  */
-struct Nfa {
+struct CounterNfa {
 public:
     /**
      * @brief For state q, delta[q] keeps the list of transitions ordered by symbols.
      *
      * The set of states of this automaton are the numbers from 0 to the number of states minus one.
      */
-    Delta delta;
+    CounterDelta delta;
     utils::SparseSet<State> initial{};
     utils::SparseSet<State> final{};
 
@@ -68,7 +68,7 @@ public:
     std::unordered_map<std::string, void*> attributes{};
 
 public:
-    explicit Nfa(Delta delta = {}, utils::SparseSet<State> initial_states = {},
+    explicit CounterNfa(CounterDelta delta = {}, utils::SparseSet<State> initial_states = {},
                  utils::SparseSet<State> final_states = {}, Alphabet* alphabet = nullptr)
         : delta(std::move(delta)), initial(std::move(initial_states)), final(std::move(final_states)), alphabet(alphabet) {}
 
@@ -77,21 +77,21 @@ public:
      *
      * @param[in] num_of_states Number of states for which to preallocate Delta.
      */
-    explicit Nfa(const unsigned long num_of_states, StateSet initial_states = {},
+    explicit CounterNfa(const unsigned long num_of_states, StateSet initial_states = {},
                  StateSet final_states = {}, Alphabet* alphabet = nullptr)
         : delta(num_of_states), initial(initial_states), final(final_states), alphabet(alphabet) {}
 
     /**
      * @brief Construct a new explicit NFA from other NFA.
      */
-    Nfa(const Nfa& other) = default;
+    CounterNfa(const CounterNfa& other) = default;
 
-    Nfa(Nfa&& other) noexcept
+    CounterNfa(CounterNfa&& other) noexcept
         : delta{ std::move(other.delta) }, initial{ std::move(other.initial) }, final{ std::move(other.final) },
           alphabet{ other.alphabet }, attributes{ std::move(other.attributes) } { other.alphabet = nullptr; }
 
-    Nfa& operator=(const Nfa& other) = default;
-    Nfa& operator=(Nfa&& other) noexcept;
+    CounterNfa& operator=(const CounterNfa& other) = default;
+    CounterNfa& operator=(CounterNfa&& other) noexcept;
 
     /**
      * Add a new (fresh) state to the automaton.
@@ -126,7 +126,7 @@ public:
     /**
      * Swap final and non-final states in-place.
      */
-    Nfa& swap_final_nonfinal() { final.complement(num_of_states()); return *this; }
+    CounterNfa& swap_final_nonfinal() { final.complement(num_of_states()); return *this; }
 
     bool is_state(const State& state_to_check) const { return state_to_check < num_of_states(); }
 
@@ -144,7 +144,7 @@ public:
      *  essentially only useful for testing purposes.
      * @return True if automata are exactly identical, false otherwise.
      */
-    bool is_identical(const Nfa& aut) const;
+    bool is_identical(const CounterNfa& aut) const;
 
     /**
      * @brief Get set of reachable states.
@@ -204,7 +204,7 @@ public:
      * @param[out] state_renaming Mapping of trimmed states to new states.
      * @return @c this after trimming.
      */
-    Nfa& trim(StateRenaming* state_renaming = nullptr);
+    CounterNfa& trim(StateRenaming* state_renaming = nullptr);
 
     std::vector<State> distances_from_initial() const;
 
@@ -216,21 +216,21 @@ public:
     /**
      * @brief In-place concatenation.
      */
-    Nfa& concatenate(const Nfa& aut);
+    CounterNfa& concatenate(const CounterNfa& aut);
 
     /**
      * @brief In-place nondeterministic union with @p aut.
      *
      * Does not add epsilon transitions, just unites initial and final states.
      */
-    Nfa& unite_nondet_with(const Nfa &aut);
+    CounterNfa& unite_nondet_with(const CounterNfa &aut);
 
     /**
      * Unify transitions to create a directed graph with at most a single transition between two states.
      * @param[in] abstract_symbol Abstract symbol to use for transitions in digraph.
      * @return An automaton representing a directed graph.
      */
-    Nfa get_one_letter_aut(Symbol abstract_symbol = 'x') const;
+    CounterNfa get_one_letter_aut(Symbol abstract_symbol = 'x') const;
 
     /**
      * Check whether @p symbol is epsilon symbol or not.
@@ -250,7 +250,7 @@ public:
      *
      * @param[out] result An automaton representing a directed graph.
      */
-    void get_one_letter_aut(Nfa& result) const;
+    void get_one_letter_aut(CounterNfa& result) const;
 
     /**
      * @brief Prints the automaton in DOT format
@@ -428,8 +428,8 @@ public:
      * @return DFA complemented in-place.
      * @pre @c this is a deterministic automaton.
      */
-    Nfa& complement_deterministic(const mata::utils::OrdVector<Symbol>& symbols, std::optional<State> sink_state = std::nullopt);
-}; // struct Nfa.
+    CounterNfa& complement_deterministic(const mata::utils::OrdVector<Symbol>& symbols, std::optional<State> sink_state = std::nullopt);
+}; // struct CounterNfa.
 
 // Allow variadic number of arguments of the same type.
 //
@@ -448,10 +448,10 @@ template<typename T, typename... Ts> using AreAllOfType = typename conjunction<s
  * @param[in] nfas NFAs to create alphabet from.
  * @return Created alphabet.
  */
-template<typename... Nfas, typename = AreAllOfType<const Nfa&, Nfas...>>
-inline OnTheFlyAlphabet create_alphabet(const Nfas&... nfas) {
+template<typename... CounterNfas, typename = AreAllOfType<const CounterNfa&, CounterNfas...>>
+inline OnTheFlyAlphabet create_alphabet(const CounterNfas&... nfas) {
     mata::OnTheFlyAlphabet alphabet{};
-    auto f = [&alphabet](const Nfa& aut) {
+    auto f = [&alphabet](const CounterNfa& aut) {
         aut.fill_alphabet(alphabet);
     };
     (f(nfas), ...);
@@ -463,28 +463,28 @@ inline OnTheFlyAlphabet create_alphabet(const Nfas&... nfas) {
  * @param[in] nfas Vector of NFAs to create alphabet from.
  * @return Created alphabet.
  */
-OnTheFlyAlphabet create_alphabet(const std::vector<std::reference_wrapper<const Nfa>>& nfas);
+OnTheFlyAlphabet create_alphabet(const std::vector<std::reference_wrapper<const CounterNfa>>& nfas);
 
 /**
  * Create alphabet from a vector of NFAs.
  * @param[in] nfas Vector of NFAs to create alphabet from.
  * @return Created alphabet.
  */
-OnTheFlyAlphabet create_alphabet(const std::vector<std::reference_wrapper<Nfa>>& nfas);
+OnTheFlyAlphabet create_alphabet(const std::vector<std::reference_wrapper<CounterNfa>>& nfas);
 
 /**
  * Create alphabet from a vector of NFAs.
  * @param[in] nfas Vector of pointers to NFAs to create alphabet from.
  * @return Created alphabet.
  */
-OnTheFlyAlphabet create_alphabet(const std::vector<Nfa*>& nfas);
+OnTheFlyAlphabet create_alphabet(const std::vector<CounterNfa*>& nfas);
 
 /**
  * Create alphabet from a vector of NFAs.
  * @param[in] nfas Vector of pointers to NFAs to create alphabet from.
  * @return Created alphabet.
  */
-OnTheFlyAlphabet create_alphabet(const std::vector<const Nfa*>& nfas);
+OnTheFlyAlphabet create_alphabet(const std::vector<const CounterNfa*>& nfas);
 
 /**
  * @brief Compute non-deterministic union.
@@ -492,7 +492,7 @@ OnTheFlyAlphabet create_alphabet(const std::vector<const Nfa*>& nfas);
  * Does not add epsilon transitions, just unites initial and final states.
  * @return Non-deterministic union of @p lhs and @p rhs.
  */
-Nfa union_nondet(const Nfa &lhs, const Nfa &rhs);
+CounterNfa union_nondet(const CounterNfa &lhs, const CounterNfa &rhs);
 
 /**
  * @brief Compute union by product construction.
@@ -502,7 +502,7 @@ Nfa union_nondet(const Nfa &lhs, const Nfa &rhs);
  * @param[out] prod_map Map mapping product states to the original states.
  * @return Union by product construction of @p lhs and @p rhs.
  */
-Nfa union_product(const Nfa &lhs, const Nfa &rhs, Symbol first_epsilon = EPSILON,
+CounterNfa union_product(const CounterNfa &lhs, const CounterNfa &rhs, Symbol first_epsilon = EPSILON,
                   std::unordered_map<std::pair<State,State>,State> *prod_map = nullptr);
 
 /**
@@ -525,10 +525,10 @@ Nfa union_product(const Nfa &lhs, const Nfa &rhs, Symbol first_epsilon = EPSILON
         const Nfa& nfa_lang_difference.
  * @todo: TODO: Add support for specifying first epsilon symbol and compute epsilon closure during determinization.
  */
-Nfa lang_difference(
-    const Nfa &nfa_included, const Nfa &nfa_excluded,
+CounterNfa lang_difference(
+    const CounterNfa &nfa_included, const CounterNfa &nfa_excluded,
     std::optional<
-        std::function<bool(const Nfa&, const Nfa&, const StateSet&, const StateSet&, const State, const Nfa&)>
+        std::function<bool(const CounterNfa&, const CounterNfa&, const StateSet&, const StateSet&, const State, const CounterNfa&)>
     > macrostate_discover = std::nullopt
 );
 
@@ -546,7 +546,7 @@ Nfa lang_difference(
  * @param[out] prod_map Mapping of pairs of the original states (lhs_state, rhs_state) to new product states (not used internally, allocated only when !=nullptr, expensive).
  * @return NFA as a product of NFAs @p lhs and @p rhs with ε-transitions preserved.
  */
-Nfa intersection(const Nfa& lhs, const Nfa& rhs,
+CounterNfa intersection(const CounterNfa& lhs, const CounterNfa& rhs,
                  const Symbol first_epsilon = EPSILON, std::unordered_map<std::pair<State, State>, State> *prod_map = nullptr);
 
 /**
@@ -561,7 +561,7 @@ Nfa intersection(const Nfa& lhs, const Nfa& rhs,
  * @return Concatenated automaton.
  */
 // TODO: check how fast is using just concatenate over epsilon and then call remove_epsilon().
-Nfa concatenate(const Nfa& lhs, const Nfa& rhs, bool use_epsilon = false,
+CounterNfa concatenate(const CounterNfa& lhs, const CounterNfa& rhs, bool use_epsilon = false,
                 StateRenaming* lhs_state_renaming = nullptr, StateRenaming* rhs_state_renaming = nullptr);
 
 /**
@@ -577,7 +577,7 @@ Nfa concatenate(const Nfa& lhs, const Nfa& rhs, bool use_epsilon = false,
  *                       complete, and swaps final and non-final states.
  * @return Complemented automaton.
  */
-Nfa complement(const Nfa& aut, const Alphabet& alphabet, const ParameterMap& params = { { "algorithm", "classical" } });
+CounterNfa complement(const CounterNfa& aut, const Alphabet& alphabet, const ParameterMap& params = { { "algorithm", "classical" } });
 
 /**
  * @brief Compute automaton accepting complement of @p aut.
@@ -597,7 +597,7 @@ Nfa complement(const Nfa& aut, const Alphabet& alphabet, const ParameterMap& par
  *                       complete, and swaps final and non-final states.
  * @return Complemented automaton.
  */
-Nfa complement(const Nfa& aut, const utils::OrdVector<Symbol>& symbols,
+CounterNfa complement(const CounterNfa& aut, const utils::OrdVector<Symbol>& symbols,
                const ParameterMap& params = { { "algorithm", "classical" } });
 
 /**
@@ -608,7 +608,7 @@ Nfa complement(const Nfa& aut, const utils::OrdVector<Symbol>& symbols,
  * - "algorithm": "brzozowski"
  * @return Minimal deterministic automaton.
  */
-Nfa minimize(const Nfa &aut, const ParameterMap& params = { { "algorithm", "brzozowski" } });
+CounterNfa minimize(const CounterNfa &aut, const ParameterMap& params = { { "algorithm", "brzozowski" } });
 
 /**
  * @brief Determinize automaton.
@@ -622,9 +622,9 @@ Nfa minimize(const Nfa &aut, const ParameterMap& params = { { "algorithm", "brzo
  * @return Determinized automaton.
  * @todo: TODO: Add support for specifying first epsilon symbol and compute epsilon closure during determinization.
  */
-Nfa determinize(
-    const Nfa& aut, std::unordered_map<StateSet, State> *subset_map = nullptr,
-    std::optional<std::function<bool(const Nfa&, const State, const StateSet&)>> macrostate_discover = std::nullopt);
+CounterNfa determinize(
+    const CounterNfa& aut, std::unordered_map<StateSet, State> *subset_map = nullptr,
+    std::optional<std::function<bool(const CounterNfa&, const State, const StateSet&)>> macrostate_discover = std::nullopt);
 
 /**
  * @brief Reduce the size of the automaton.
@@ -638,7 +638,7 @@ Nfa determinize(
  * - "direction": "forward", "backward".
  * @return Reduced automaton.
  */
-Nfa reduce(const Nfa &aut, StateRenaming *state_renaming = nullptr,
+CounterNfa reduce(const CounterNfa &aut, StateRenaming *state_renaming = nullptr,
            const ParameterMap& params = {{ "algorithm", "simulation" }, { "type", "after" }, { "direction", "forward" } });
 
 /**
@@ -652,7 +652,7 @@ Nfa reduce(const Nfa &aut, StateRenaming *state_renaming = nullptr,
  * - "algorithm": "naive", "antichains" (Default: "antichains")
  * @return True if @p smaller is included in @p bigger, false otherwise.
  */
-bool is_included(const Nfa& smaller, const Nfa& bigger, Run* cex, const Alphabet* alphabet = nullptr,
+bool is_included(const CounterNfa& smaller, const CounterNfa& bigger, Run* cex, const Alphabet* alphabet = nullptr,
                  const ParameterMap& params = {{ "algorithm", "antichains" }});
 
 /**
@@ -665,7 +665,7 @@ bool is_included(const Nfa& smaller, const Nfa& bigger, Run* cex, const Alphabet
  * - "algorithm": "naive", "antichains" (Default: "antichains")
  * @return True if @p smaller is included in @p bigger, false otherwise.
  */
-inline bool is_included(const Nfa& smaller, const Nfa& bigger, const Alphabet* const alphabet = nullptr,
+inline bool is_included(const CounterNfa& smaller, const CounterNfa& bigger, const Alphabet* const alphabet = nullptr,
                         const ParameterMap& params = {{ "algorithm", "antichains" }}) {
     return is_included(smaller, bigger, nullptr, alphabet, params);
 }
@@ -680,7 +680,7 @@ inline bool is_included(const Nfa& smaller, const Nfa& bigger, const Alphabet* c
  * - "algorithm": "naive", "antichains" (Default: "antichains")
  * @return True if @p lhs and @p rhs are equivalent, false otherwise.
  */
-bool are_equivalent(const Nfa& lhs, const Nfa& rhs, const Alphabet* alphabet,
+bool are_equivalent(const CounterNfa& lhs, const CounterNfa& rhs, const Alphabet* alphabet,
                     const ParameterMap& params = {{ "algorithm", "antichains"}});
 
 /**
@@ -700,30 +700,30 @@ bool are_equivalent(const Nfa& lhs, const Nfa& rhs, const Alphabet* alphabet,
  * - "algorithm": "naive", "antichains" (Default: "antichains")
  * @return True if @p lhs and @p rhs are equivalent, false otherwise.
  */
-bool are_equivalent(const Nfa& lhs, const Nfa& rhs, const ParameterMap& params = {{ "algorithm", "antichains"}});
+bool are_equivalent(const CounterNfa& lhs, const CounterNfa& rhs, const ParameterMap& params = {{ "algorithm", "antichains"}});
 
 // Reverting the automaton by one of the three functions below,
 // currently simple_revert seems best (however, not tested enough).
-Nfa revert(const Nfa& aut);
+CounterNfa revert(const CounterNfa& aut);
 
 // This revert algorithm is fragile, uses low level accesses to Nfa and static data structures,
 // and it is potentially dangerous when there are used symbols with large numbers (allocates an array indexed by symbols)
 // It is faster asymptotically and for somewhat dense automata,
 // the same or a little bit slower than simple_revert otherwise.
 // Not affected by pre-reserving vectors.
-Nfa fragile_revert(const Nfa& aut);
+CounterNfa fragile_revert(const CounterNfa& aut);
 
 // Reverting the automaton by a simple algorithm, which does a lot of random access addition to Post and Move.
 //  Much affected by pre-reserving vectors.
-Nfa simple_revert(const Nfa& aut);
+CounterNfa simple_revert(const CounterNfa& aut);
 
 // Reverting the automaton by a modification of the simple algorithm.
 // It replaces random access addition to SymbolPost by push_back and sorting later, so far seems the slowest of all, except on
 //  dense automata, where it is almost as slow as simple_revert. Candidate for removal.
-Nfa somewhat_simple_revert(const Nfa& aut);
+CounterNfa somewhat_simple_revert(const CounterNfa& aut);
 
 // Removing epsilon transitions
-Nfa remove_epsilon(const Nfa& aut, Symbol epsilon = EPSILON);
+CounterNfa remove_epsilon(const CounterNfa& aut, Symbol epsilon = EPSILON);
 
 /** Encodes a vector of strings (each corresponding to one symbol) into a
  *  @c Word instance
@@ -737,7 +737,7 @@ Run encode_word(const Alphabet* alphabet, const std::vector<std::string>& input)
  * Get the set of symbols to work with during operations.
  * @param[in] shared_alphabet Optional alphabet shared between NFAs passed as an argument to a function.
  */
-utils::OrdVector<Symbol> get_symbols_to_work_with(const nfa::Nfa& nfa, const Alphabet* const shared_alphabet = nullptr);
+utils::OrdVector<Symbol> get_symbols_to_work_with(const cntnfa::CounterNfa& nfa, const Alphabet* const shared_alphabet = nullptr);
 
 /**
  * @brief Get any arbitrary accepted word in the language difference of @p nfa_included without @p nfa_excluded.
@@ -754,23 +754,23 @@ utils::OrdVector<Symbol> get_symbols_to_work_with(const nfa::Nfa& nfa, const Alp
  * @return An arbitrary word from the language difference, or @c std::nullopt if the language difference automaton
  *  is universal on the set of symbols from transitions of @p nfa_included.
  */
-std::optional<Word> get_word_from_lang_difference(const Nfa &nfa_included, const Nfa &nfa_excluded);
+std::optional<Word> get_word_from_lang_difference(const CounterNfa &nfa_included, const CounterNfa &nfa_excluded);
 
-} // namespace mata::nfa.
+} // namespace mata::cntnfa.
 
 namespace std {
 template <>
-struct hash<mata::nfa::Transition> {
-	inline size_t operator()(const mata::nfa::Transition& trans) const {
-		size_t accum = std::hash<mata::nfa::State>{}(trans.source);
+struct hash<mata::cntnfa::CounterTransition> {
+	inline size_t operator()(const mata::cntnfa::CounterTransition& trans) const {
+		size_t accum = std::hash<mata::cntnfa::State>{}(trans.source);
 		accum = mata::utils::hash_combine(accum, trans.symbol);
 		accum = mata::utils::hash_combine(accum, trans.target);
 		return accum;
 	}
 };
 
-std::ostream& operator<<(std::ostream& os, const mata::nfa::Transition& trans);
-std::ostream& operator<<(std::ostream& os, const mata::nfa::Nfa& nfa);
+std::ostream& operator<<(std::ostream& os, const mata::cntnfa::CounterTransition& trans);
+std::ostream& operator<<(std::ostream& os, const mata::cntnfa::CounterNfa& nfa);
 } // namespace std.
 
-#endif /* MATA_NFA_HH_ */
+#endif /* MATA_CNTNFA_HH */
