@@ -21,7 +21,7 @@ add_library(libmata STATIC
 	nfa/delta.cc
 	nfa/operations.cc
 	nfa/builder.cc
-	cntnfa/nfa.cc
+	cntnfa/cntnfa.cc
 	cntnfa/inclusion.cc
 	cntnfa/universal.cc
 	cntnfa/complement.cc
