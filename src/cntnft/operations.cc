@@ -2,8 +2,6 @@
  */
 
 #include <algorithm>
-#include <list>
-#include <unordered_set>
 #include <iterator>
 #include <algorithm>
 
@@ -13,10 +11,7 @@
 #include "mata/cntnft/cntnft.hh"
 #include "mata/cntnft/algorithms.hh"
 #include "mata/cntnft/builder.hh"
-#include "mata/cntnft/strings.hh"
 #include <mata/simlib/explicit_lts.hh>
-
-using std::tie;
 
 using namespace mata::utils;
 using namespace mata::cntnft;

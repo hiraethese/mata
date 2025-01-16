@@ -1,4 +1,4 @@
-/* nft-complement.cc -- NFT complement
+/* cntnft-complement.cc -- NFT complement
  */
 
 // MATA headers

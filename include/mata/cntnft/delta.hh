@@ -3,14 +3,7 @@
 #ifndef MATA_CNTNFT_DELTA_HH
 #define MATA_CNTNFT_DELTA_HH
 
-#include "mata/utils/sparse-set.hh"
-#include "mata/utils/synchronized-iterator.hh"
-#include "mata/alphabet.hh"
-#include "mata/cntnft/types.hh"
-
 #include "mata/nfa/delta.hh"
-
-#include <iterator>
 
 namespace mata::cntnft {
 

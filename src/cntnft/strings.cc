@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "mata/cntnft/strings.hh"
+#include "mata/nfa/strings.hh"
 #include "mata/parser/re2parser.hh"
 #include "mata/cntnft/cntnft.hh"
 #include "mata/cntnft/builder.hh"
@@ -12,7 +13,6 @@ using namespace mata;
 using mata::Symbol;
 using mata::nfa::SymbolPost;
 using mata::nfa::StatePost;
-using mata::nfa::Nfa;
 using namespace mata::cntnft;
 using mata::cntnft::State;
 using mata::cntnft::Level;

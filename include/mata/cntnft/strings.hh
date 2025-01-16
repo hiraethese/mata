@@ -1,10 +1,9 @@
-/* nfa-strings.hh -- Operations on NFAs for string solving.
+/* cntnft-strings.hh -- Operations on NFAs for string solving.
  */
 
 #ifndef MATA_CNTNFT_STRING_SOLVING_HH
 #define MATA_CNTNFT_STRING_SOLVING_HH
 
-#include "mata/nfa/strings.hh"
 #include "cntnft.hh"
 
 namespace mata::cntnft::strings {

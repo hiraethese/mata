@@ -1,4 +1,4 @@
-/* nft-concatenation.cc -- Concatenation of NFTs
+/* cntnft-concatenation.cc -- Concatenation of NFTs
  */
 
 // MATA headers

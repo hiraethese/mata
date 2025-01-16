@@ -1,8 +1,8 @@
 // TODO: Insert header file.
 
-#include "mata/utils/utils.hh"
 #include "mata/utils/sparse-set.hh"
 #include "mata/cntnft/builder.hh"
+#include "mata/nfa/builder.hh"
 
 #include <fstream>
 

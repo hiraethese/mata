@@ -2,14 +2,10 @@
  */
 
 #include <algorithm>
-#include <list>
-#include <optional>
-#include <iterator>
 
 // MATA headers
 #include "mata/utils/sparse-set.hh"
 #include "mata/cntnft/cntnft.hh"
-#include "mata/cntnft/algorithms.hh"
 #include <mata/simlib/explicit_lts.hh>
 
 using namespace mata::utils;

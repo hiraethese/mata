@@ -1,7 +1,6 @@
-/* nft-intersection.cc -- Intersection of NFTs
+/* cntnft-intersection.cc -- Intersection of NFTs
  */
 
-#include <fstream>
 #include <cassert>
 #include <functional>
 

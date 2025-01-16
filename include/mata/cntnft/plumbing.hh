@@ -1,4 +1,4 @@
-/* nfa-plumbings.hh -- Wrapping up different supporting functions.
+/* cntnft-plumbings.hh -- Wrapping up different supporting functions.
  */
 
 #ifndef MATA_CNTNFT_PLUMBING_HH

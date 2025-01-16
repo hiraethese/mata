@@ -3,10 +3,7 @@
 #ifndef MATA_CNTNFT_TYPES_HH
 #define MATA_CNTNFT_TYPES_HH
 
-#include <limits>
-
 #include "mata/alphabet.hh"
-#include "mata/parser/parser.hh"
 #include "mata/nfa/types.hh"
 
 namespace mata::cntnft {

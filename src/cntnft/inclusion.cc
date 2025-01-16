@@ -5,7 +5,6 @@
 #include "mata/cntnft/cntnft.hh"
 #include "mata/cntnft/algorithms.hh"
 #include "mata/nfa/algorithms.hh"
-#include "mata/utils/sparse-set.hh"
 
 using namespace mata::cntnft;
 using namespace mata::utils;

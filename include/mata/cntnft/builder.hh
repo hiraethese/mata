@@ -3,7 +3,6 @@
 #ifndef LIBMATA_CNTNFT_BUILDER_HH
 #define LIBMATA_CNTNFT_BUILDER_HH
 
-#include "mata/nfa/builder.hh"
 #include "cntnft.hh"
 
 #include <optional>
