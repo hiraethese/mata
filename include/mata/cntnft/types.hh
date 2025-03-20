@@ -6,6 +6,10 @@
 #include "mata/alphabet.hh"
 #include "mata/nfa/types.hh"
 
+// Use this for undefined ID or index.
+#define MAX_SIZE_T (std::numeric_limits<size_t>::max())
+#define UNDEFINED_ID MAX_SIZE_T
+
 namespace mata::cntnft {
 
 extern const std::string TYPE_NFT;

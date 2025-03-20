@@ -54,6 +54,8 @@ add_library(libmata STATIC
 	cntnft/operations.cc
 	cntnft/builder.cc
 	cntnft/strings.cc
+	cntnft/annotations.cc
+	cntnft/counters.cc
 )
 
 # libmata needs at least c++20
