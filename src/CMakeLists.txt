@@ -45,7 +45,7 @@ add_library(libmata STATIC
 	cntnfa/annotations.cc
 	cntnfa/counters.cc
 	cntnfa/parser.cc
-	cntnfa-parser/parser.cc
+	# cntnfa-parser/parser.cc
 )
 
 # libmata needs at least c++20
