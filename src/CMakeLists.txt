@@ -44,6 +44,7 @@ add_library(libmata STATIC
 	cntnfa/builder.cc
 	cntnfa/annotations.cc
 	cntnfa/counters.cc
+	cntnfa/parser.cc
 	cntnfa-parser/parser.cc
 )
 
