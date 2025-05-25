@@ -6,6 +6,7 @@
 
 #include "../utils/utils.hh"
 
+#include "mata/nfa/nfa.hh"
 #include "mata/cntnfa/cntnfa.hh"
 
 #include <cstdlib>
@@ -14,6 +15,7 @@
 #include <string>
 
 const bool MINTERMIZE_AUTOMATA = true;
+constexpr int NUM_ITERATIONS = 1;
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -22,6 +24,12 @@ int main(int argc, char *argv[]) {
     }
 
     std::string filename = argv[1];
+
+    Nfa nfa;
+    mata::OnTheFlyAlphabet alphabet_nfa{};
+    if (load_automaton(filename, nfa, alphabet_nfa, MINTERMIZE_AUTOMATA) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
 
     Cntnfa cntnfa;
     mata::OnTheFlyAlphabet alphabet_cntnfa{};
@@ -32,10 +40,19 @@ int main(int argc, char *argv[]) {
     // Setting precision of the times to fixed points and 4 decimal places
     std::cout << std::fixed << std::setprecision(5);
 
-    TIME_BEGIN(trim);
-    Cntnfa trimmed_cntnfa = cntnfa;
-    trimmed_cntnfa.trim();
-    TIME_END(trim);
+    TIME_BEGIN(trim_nfa);
+    for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        Nfa trimmed_nfa = nfa;
+        trimmed_nfa.trim();
+    }
+    TIME_END(trim_nfa);
+
+    TIME_BEGIN(trim_cntnfa);
+    for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        Cntnfa trimmed_cntnfa = cntnfa;
+        trimmed_cntnfa.trim();
+    }
+    TIME_END(trim_cntnfa);
 
     return EXIT_SUCCESS;
 }
